@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Game</title>
+    <style>
+        .centered-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #startContainer {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        #startButton {
+            margin-right: 10px;
+            padding: 10px 20px;
+            font-size: 18px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .difficulty-button {
+            margin-right: 10px;
+            padding: 8px 16px;
+            font-size: 14px;
+            background-color: #f1f1f1;
+            color: #333;
+            border: none;
+            cursor: pointer;
+        }
+
+        .difficulty-button.selected {
+            background-color: #4CAF50;
+            color: white;
+        }
+        #player {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .enemy {
+            position: absolute;
+            top: 10px;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            -o-user-select: none;
+            user-select: none;
+        }
+        #resultDiv {
+            padding: 20px;
+            background-color: #f1f1f1;
+            border-radius: 5px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        #scoreContainer {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 14px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+<div class="centered-container">
+    <div id="startContainer">
+        <button id="startButton">Start</button>
+        <div id="difficultyButtons">
+            <button class="difficulty-button selected">Baby</button>
+            <button class="difficulty-button">Medium</button>
+            <button class="difficulty-button">Hard</button>
+        </div>
+    </div>
+</div>
+<div id="player"></div>
+<div id="scoreContainer">
+    Score: <span id="score">0</span>
+</div>
+<script>
+
+    const player = document.getElementById('player');
+    const enemies = [];
+    const levels = [
+        { enemyInterval: 1000 },
+        { enemyInterval: 750},
+        { enemyInterval: 500 }
+    ];
+
+    const scoreElement = document.getElementById('score');
+    let score = 0;
+    let play = false;
+    let currentLevel = 0;
+
+
+    function createEnemy() {
+        if(play) {
+            const enemy = document.createElement('div');
+            enemy.classList.add('enemy');
+            enemy.style.left = Math.random() * window.innerWidth + 'px';
+            enemy.innerText = String.fromCharCode(65 + Math.floor(Math.random() * 26));
+            document.body.appendChild(enemy);
+            enemies.push(enemy);
+        }
+    }
+
+
+    function update() {
+        if(play)
+        {
+            enemies.forEach(enemy => {
+                const top = enemy.offsetTop;
+                enemy.style.top = top + 1 + Math.floor(score,10)/10 + 'px';
+
+                if (top > window.innerHeight - player.offsetHeight) {
+                    endGame();
+                }
+            });
+            scoreElement.textContent = score;
+            requestAnimationFrame(update);
+        }
+
+    }
+
+
+
+    function endGame() {
+
+        document.removeEventListener('keydown', handleKeyPress);
+
+
+        const resultDiv = document.createElement('div');
+        resultDiv.id = 'resultDiv';
+        resultDiv.innerHTML = `GAME OVER!!! Score: ${score}`;
+        const restartButton = document.createElement('button');
+        restartButton.innerText = 'OK';
+        restartButton.addEventListener('click', () => {
+            location.reload();
+        });
+        resultDiv.appendChild(restartButton);
+        document.body.appendChild(resultDiv);
+        play = false;
+    }
+
+
+    function handleKeyPress(event) {
+        const key = event.key.toUpperCase();
+
+
+        const enemyIndex = enemies.findIndex(enemy => enemy.innerText === key);
+
+        if (enemyIndex !== -1) {
+            const enemy = enemies[enemyIndex];
+            enemy.remove();
+            enemies.splice(enemyIndex, 1);
+            score++;
+        }
+    }
+
+
+    document.getElementById('startButton').addEventListener('click', () => {
+
+        document.getElementById('startButton').remove();
+        document.getElementById('difficultyButtons').remove();
+
+
+        document.addEventListener('keydown', handleKeyPress);
+        const currentLevelInfo = levels[currentLevel];
+        const { enemyInterval } = currentLevelInfo;
+
+        setInterval(createEnemy, enemyInterval);
+        requestAnimationFrame(update);
+        play = true;
+        var qwe = enemyInterval;
+
+    });
+    const difficultyButtons = document.querySelectorAll('.difficulty-button');
+    difficultyButtons.forEach((button, index) => {
+        button.addEventListener('click', () => {
+
+            difficultyButtons.forEach(button => button.classList.remove('selected'));
+
+
+            button.classList.add('selected');
+
+            currentLevel = index;
+        });
+    });
+</script>
+</body>
+</html>
